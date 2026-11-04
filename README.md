@@ -1,35 +1,25 @@
-# Market Forecast AI — dashboard mobile (v2)
+# Market Forecast AI v3 — ricerca quantitativa mobile
 
-App Streamlit responsive per smartphone Android/iPhone e computer. Nessuna chiave API richiesta per i dati di base; disponibilità e ritardi dipendono da Yahoo Finance e Google News RSS.
+**Versione sperimentale, non sistema di trading validato.** Sostituisce la regressione logistica singola con confronto tra tre modelli, selezione su validazione precedente e holdout finale separato. Se non emerge vantaggio, usa il benchmark.
 
-## Pubblicazione sul telefono (consigliata)
+## Deploy Streamlit
+Caricare `app.py`, `engine.py`, `daily_report.py`, `requirements.txt`, `.github/workflows/daily.yml` e la cartella `tests` nella radice del repository GitHub già esistente. Mantenere il branch `main` e l'entrypoint `app.py`. Il deploy Streamlit si aggiorna al commit.
 
-1. Crea un repository **privato** GitHub e carica i file di questa cartella (inclusa `.streamlit/config.toml`). Non caricare `forecasts.sqlite3`.
-2. Apri https://share.streamlit.io/ e accedi con GitHub.
-3. Clicca **Create app**, seleziona il repository, il branch `main` e come entrypoint `app.py`, poi **Deploy**.
-4. Attendi l'installazione automatica delle dipendenze e apri l'URL HTTPS risultante sul telefono. Puoi aggiungerlo alla schermata Home dal browser.
-5. **Attenzione privacy:** un repository privato non rende necessariamente privata l'app pubblicata. Controlla le impostazioni di accesso del servizio hosting prima di condividere dati sensibili.
+## Aggiornamenti automatici
+La workflow GitHub Actions è programmata per le 06:15 UTC nei giorni feriali, **non** per le 08:00 locali tutto l'anno (06:15 UTC = 07:15 in inverno, 08:15 in estate). GitHub Actions non garantisce l'ora esatta. Archivia report JSON nel repository pubblico `reports/` se Actions ha permessi di scrittura. Non inserire informazioni personali o credenziali nei report. L'automazione ChatGPT delle 08:00 è separata e non legge questi report automaticamente.
 
-La pubblicazione richiede l'accesso al tuo account GitHub e Streamlit Cloud: non è stata eseguita da ChatGPT. Gli URL definitivi non sono ancora disponibili.
+## Limiti essenziali
+- I prezzi Yahoo Finance possono avere ritardi, dati mancanti o cambiamenti retroattivi.
+- Le notizie RSS **non entrano** nel modello: servirebbe uno storico affidabile con orari di pubblicazione e dati vintage macroeconomici.
+- Il rendimento medio, gli intervalli 5°–95° percentile e la probabilità di perdita oltre 3% sono statistiche **storiche non condizionali**, non previsioni calibrate.
+- La selezione dei modelli usa la validazione prima dell'holdout; consultare ripetutamente il test finale per progettare modifiche ne riduce l'indipendenza.
+- Gli orizzonti sovrapposti richiedono cautela nell'interpretare gli intervalli bootstrap.
+- La dashboard non include costi, slippage, tasse, modelli di rendimento condizionale, valutazioni fondamentali o database persistente privato.
+- Gli strumenti VIX e yield Treasury non rappresentano investimenti direttamente acquistabili. Alcuni ETF sono quotati in valute diverse e hanno storici più brevi.
+- Nessuna email automatica viene inviata da questa workflow.
 
-## Avvio su PC
+## Test
+`pip install -r requirements.txt pytest` e `pytest -q`.
 
-```bash
-python -m pip install -r requirements.txt
-streamlit run app.py
-```
-
-## Funzioni
-
-- Mercati S&P 500, Nasdaq 100, Euro Stoxx 50, FTSE MIB, DAX, EUR/USD, oro, VIX, rendimento Treasury USA 10Y.
-- Previsioni probabilistiche sperimentali a 1/3/7 **sedute**, non giorni di calendario.
-- Backtest walk-forward con etichette purgate e benchmark causale; Brier score e accuratezza.
-- Grafici mobili, export CSV, impatto EUR/USD per strumenti in USD.
-- RSS di titoli economici recenti (non ancora input del modello quantitativo).
-- Archivio locale SQLite: persistente solo dove il disco è persistente; su Streamlit Community Cloud può essere cancellato ai riavvii e non equivale a un database affidabile.
-
-## Limiti tecnici e scientifici
-
-La previsione usa un modello di regressione logistica su indicatori di prezzo. Non è un modello causale né un sistema di trading validato. Il backtest è una valutazione storica parziale e non include costi, slippage, intervalli di confidenza, ottimizzazione senza leakage o un test esterno indipendente. Le osservazioni con orizzonti sovrapposti non sono indipendenti. I percentili dei rendimenti sono descrittivi, non intervalli calibrati. L'app aggiorna i dati quando viene aperta/ricaricata e dopo la scadenza della cache (1 ora), **non esegue aggiornamenti autonomi quando è chiusa**.
-
-Il rapporto ChatGPT delle 8:00 è un'automazione **separata**: non alimenta questa dashboard. Per un sistema completamente integrato occorrono hosting, API affidabili, database remoto persistente, job schedulati e credenziali configurate dall'utente.
+## Privacy
+Il repository attuale è pubblico. Evitare di caricare credenziali, API key o dati personali.
